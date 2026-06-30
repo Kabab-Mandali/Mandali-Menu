@@ -1,7 +1,15 @@
 /* =============================================================
    store.js — shared data layer for customer site + admin panel
-   Persists to localStorage on the device. Falls back to the
-   published seed (seed.js) when nothing is stored yet.
+
+   CUSTOMER pages (index.html, dish.html): always read straight
+   from the published seed (seed.js). Nothing about the menu is
+   saved on the customer's device and the version is never checked,
+   so every visit shows exactly what is currently published.
+
+   ADMIN page (admin.html): keeps a working copy in localStorage
+   so the owner can edit and then publish a new seed.js to GitHub.
+   Admin mode is on when window.MANDALI_ADMIN === true (set in
+   admin.html) or when the page is admin.html.
    ============================================================= */
 (function (global) {
   "use strict";
@@ -11,10 +19,28 @@
   var subscribers = [];
   var state = null;
 
+  // Admin mode = editing device. Everyone else is a read-only customer.
+  var ADMIN = !!global.MANDALI_ADMIN ||
+    /admin(\.html?)?$/i.test((global.location && global.location.pathname) || "");
+
+  // Customers keep nothing across visits; admin language pref is fine to keep.
+  function prefStore() {
+    return ADMIN ? global.localStorage : global.sessionStorage;
+  }
+
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
   function load() {
     var seed = global.MANDALI_SEED || {};
+
+    // Customer: always the live seed, no cache, no version check.
+    if (!ADMIN) {
+      // Clean up any stale menu cached by older versions of the site.
+      try { localStorage.removeItem(KEY); } catch (e) { }
+      return clone(seed);
+    }
+
+    // Admin: restore the in-progress draft if it's at least as new as the seed.
     try {
       var raw = localStorage.getItem(KEY);
       if (raw) {
@@ -28,6 +54,8 @@
   }
 
   function persist() {
+    // Customer devices never store the menu.
+    if (!ADMIN) return;
     try { localStorage.setItem(KEY, JSON.stringify(state)); }
     catch (e) { }
   }
@@ -64,13 +92,15 @@
     uid: uid,
     clone: clone,
 
-    /* ----- language ----- */
+    /* ----- language -----
+       Admin keeps the choice in localStorage; customers keep it only
+       for the current visit (sessionStorage), so nothing persists. */
     getLang: function () {
-      try { return localStorage.getItem(LANG_KEY) || "en"; }
+      try { return prefStore().getItem(LANG_KEY) || "en"; }
       catch (e) { return "en"; }
     },
     setLang: function (l) {
-      try { localStorage.setItem(LANG_KEY, l); }
+      try { prefStore().setItem(LANG_KEY, l); }
       catch (e) {}
     },
 
