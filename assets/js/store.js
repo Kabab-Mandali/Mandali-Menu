@@ -118,13 +118,13 @@
         return (a.order || 0) - (b.order || 0);
       });
     },
-    dishes: function () { return ensure().dishes; },
+    dishes: function () { return ensure().dishes.filter(Boolean); },
     visibleDishes: function () {
-      return ensure().dishes.filter(function (d) { return !d.hidden; });
+      return ensure().dishes.filter(function (d) { return d && !d.hidden; });
     },
     dishesByCategory: function (catId, includeHidden) {
       return ensure().dishes.filter(function (d) {
-        return d.categoryId === catId && (includeHidden || !d.hidden);
+        return d && d.categoryId === catId && (includeHidden || !d.hidden);
       });
     },
     optionGroups: function () { return ensure().optionGroups; },
