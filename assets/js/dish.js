@@ -55,7 +55,7 @@
         '<div class="dpage wrap dpage--empty">' +
           '<h1 class="dtitle">' + esc(t("notFound")) + '</h1>' +
           '<p class="dmuted">' + esc(t("notFoundBody")) + '</p>' +
-          '<a class="btn-line" href="index.html">' + esc(t("backToMenu")) + '</a>' +
+          '<a class="btn-line" href="index.html?lang=' + lang + '">' + esc(t("backToMenu")) + '</a>' +
         '</div>';
       return;
     }
@@ -90,7 +90,7 @@
     root.innerHTML =
       hero +
       '<div class="dpage wrap">' +
-        (cat ? '<a class="deyebrow" href="index.html#sec-' + esc(cat.id) + '">' + esc(L(cat.name)) + '</a>' : '') +
+        (cat ? '<a class="deyebrow" href="index.html?lang=' + lang + '#sec-' + esc(cat.id) + '">' + esc(L(cat.name)) + '</a>' : '') +
         '<div class="dhead">' +
           '<h1 class="dtitle">' + esc(L(d.name)) + '</h1>' +
           '<span class="dprice">' + price(d.price) + '</span>' +
@@ -99,14 +99,14 @@
         (L(d.desc) ? '<p class="ddesc">' + esc(L(d.desc)) + '</p>' : '') +
         (groups ? '<div class="dsection-title"><span>' + esc(t("choices")) + '</span></div>' + groups : '') +
         '<p class="dnote">' + esc(t("note")) + '</p>' +
-        '<a class="btn-line" href="index.html">' + esc(t("backToMenu")) + '</a>' +
+        '<a class="btn-line" href="index.html?lang=' + lang + '">' + esc(t("backToMenu")) + '</a>' +
       '</div>';
   }
 
   /* back button: return to previous scroll position when possible */
   $("back").addEventListener("click", function () {
     if (history.length > 1 && document.referrer) { history.back(); }
-    else { location.href = "index.html"; }
+    else { location.href = "index.html?lang=" + lang; }
   });
 
   function setLang(l) { lang = l; S.setLang(l); render(); }
