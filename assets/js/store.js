@@ -3,8 +3,8 @@
 
    CUSTOMER pages (index.html, dish.html): always read straight
    from the published seed (seed.js). Nothing about the menu is
-   saved on the customer's device and the version is never checked,
-   so every visit shows exactly what is currently published.
+   saved on the customer's device, so every visit shows exactly
+   what is currently published.
 
    ADMIN page (admin.html): keeps a working copy in localStorage
    so the owner can edit and then publish a new seed.js to GitHub.
@@ -23,11 +23,6 @@
   var ADMIN = !!global.MANDALI_ADMIN ||
     /admin(\.html?)?$/i.test((global.location && global.location.pathname) || "");
 
-  // Customers keep nothing across visits; admin language pref is fine to keep.
-  function prefStore() {
-    return ADMIN ? global.localStorage : global.sessionStorage;
-  }
-
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
   function load() {
@@ -40,14 +35,12 @@
       return clone(seed);
     }
 
-    // Admin: restore the in-progress draft if it's at least as new as the seed.
+    // Admin: restore the in-progress draft if there is one, else the seed.
     try {
       var raw = localStorage.getItem(KEY);
       if (raw) {
         var parsed = JSON.parse(raw);
-        var valid = parsed && parsed.restaurant && parsed.categories;
-        var fresh = valid && Number(parsed.version || 0) >= Number(seed.version || 0);
-        if (fresh) return parsed;
+        if (parsed && parsed.restaurant && parsed.categories) return parsed;
       }
     } catch (e) { }
     return clone(seed);
@@ -93,15 +86,29 @@
     clone: clone,
 
     /* ----- language -----
-       Admin keeps the choice in localStorage; customers keep it only
-       for the current visit (sessionStorage), so nothing persists. */
+       Admin keeps the choice in localStorage. Customers store nothing:
+       the language lives only in the page URL (?lang=ar|en), so it
+       carries across pages during a visit but is never saved. */
     getLang: function () {
-      try { return prefStore().getItem(LANG_KEY) || "en"; }
-      catch (e) { return "en"; }
+      if (ADMIN) {
+        try { return localStorage.getItem(LANG_KEY) || "en"; }
+        catch (e) { return "en"; }
+      }
+      try {
+        var v = new URLSearchParams(global.location.search).get("lang");
+        return (v === "ar" || v === "en") ? v : "en";
+      } catch (e) { return "en"; }
     },
     setLang: function (l) {
-      try { prefStore().setItem(LANG_KEY, l); }
-      catch (e) {}
+      if (ADMIN) {
+        try { localStorage.setItem(LANG_KEY, l); } catch (e) {}
+        return;
+      }
+      try {
+        var url = new URL(global.location.href);
+        url.searchParams.set("lang", l);
+        global.history.replaceState(null, "", url.toString());
+      } catch (e) {}
     },
 
     /* ----- read helpers ----- */

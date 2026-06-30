@@ -112,7 +112,7 @@
   function dishRow(d) {
     var el = document.createElement("a");
     el.className = "dish";
-    el.href = "dish.html?id=" + encodeURIComponent(d.id);
+    el.href = "dish.html?id=" + encodeURIComponent(d.id) + "&lang=" + lang;
 
     var media = d.image
       ? '<span class="dish__media"><img loading="lazy" src="' + esc(d.image) + '" alt="' + esc(L(d.name)) + '"></span>'
